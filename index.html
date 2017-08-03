@@ -1,21 +1,39 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
 
-  <title>AGH</title>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+
+<style>
+
+/*https://stackoverflow.com/questions/4288253/html5-canvas-100-width-height-of-viewport */
+
+/* * { margin:0; padding:0; } */ /* to remove the top and left whitespace */
+
+
+html, body { width:100%; height:100%; font-family:sans-serif;} /* just to be sure these are full screen*/
+
+canvas { display:block; } /* To remove the scrollbars */
+
+</style>
+
+
+<script src="matter.min.js"></script>
+<script src="p5.min.js"></script>
+
+<script src="circle.js"></script>
+<script src="rectangle.js"></script>
+<script src="main.js"></script>
+
 
 <script>
-body.onload = function () {
-alert('Testing ...');
-document.getElementById('main').innerHTML='Testing 1-2-3';
-};
-
+//window.onload=function() {main();};
 </script>
-</head>
 
+</head>
 <body>
+<div id="header">header</div>
 <div id="main"></div>
+<div id="footer">footer</div>
 </body>
 </html>

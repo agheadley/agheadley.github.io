@@ -1,0 +1,17 @@
+Introduction to Matter.js is useful tutorial (uses p5.js to render)
+https://github.com/liabru/matter-js/wiki/Tutorials
+
+
+Running the system via a local server ...
+https://stackoverflow.com/questions/16333790/node-js-quick-file-server-static-files-over-http
+
+
+with node.js installed (and npm) ...
+
+npm install http-server -g
+
+go to folder ...
+
+http-server -c-1   (-c-1 ensures to cache)
+
+navigate to localhost:8080 or whatever port is requested.
