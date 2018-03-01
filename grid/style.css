@@ -16,9 +16,12 @@ html, body {
     grid-template-columns: minmax(100px, 20%) auto;
     grid-template-rows: minmax(100px, auto) auto auto;
     grid-gap: 5px;
+    min-width:480px;
+   
 }
 
 .logo {
+
     grid-column:1;
     grid-row:1;
 
