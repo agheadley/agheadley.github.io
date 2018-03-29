@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <!--  Meta  -->
+  <meta charset="UTF-8" />
+  <title>test</title>
+  
+  <!--  Styles 
+  <link rel="stylesheet" href="styles/index.processed.css">
+ -->
+  
+  <link rel="stylesheet" href="styles/style.css">
+  
+  <link rel=”shortcut icon” href=”/favicon.ico” type=”image/x-icon” />
+  
+   <!-- Typescript Scripts 
+  <script src="scripts/stat.processed.js"></script>
+  <script src="scripts/main.processed.js"></script>
+  -->
+  <!-- Typescript Scripts -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.14/vue.js"></script>
+  <script src="scripts/model.js"></script>
+  <script src="scripts/stat.js"></script>
+  
+  <script src="scripts/util.js"></script>
+  <script src="scripts/grade.js"></script>
+  <script src="scripts/main.js"></script>
+
+  </head>
+<body>
+
+<template id="department-template"> <!-- start of department template --> 
+<div> <!-- start of dept main div -->
+  <p><a class="large" v-if="status>1" v-on:click="goBack()">&#11013;</a>&nbsp;<u>{{message}}</u></p>
+  <div v-if="status==3">
+    <table>
+        <tr>
+        <td>course</td><td>subject</td><td>(code)</td><td>&nbsp;</td><td>set</td>
+        <td v-for="item in assess">{{item.Type}}</td>
+        </tr>
+        <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+          <td v-for="(item,index) in assess"><a v-on:click="selectAssess(index)">{{item.Title}}</a></td>
+        </tr>
+        <tr v-for="(item,index) in baseTable">
+          <td>{{set[index].CourseCode}}</td><td>{{set[index].SubjectCode}}</td><td>{{set[index].ResultCode}}</td>
+          <td><span v-if="set[index].showPupilLink"><a v-on:click="selectPupil(index)">&#128101;<a></span><span v-if="!set[index].showPupilLink">&nbsp;</span></td>
+          <td><a v-on:click="selectSet(index)">{{set[index].SetInfo}}</a></td>
+          <td v-bind:class="{'redRAG':col.tRes.sig===-1,'greenRAG':col.tRes.sig===1}" v-for="(col,colIndex) in item">{{col.grade.repGrade}}</td>
+        </tr>
+    </table>
+  </div>
+    
+  <div v-if="status===4 || status===5">
+    <table>
+      <tr>
+        <td>
+        <input type="radio" name="assessmentOutput" :value="'table'" v-model="graphSelection"/>&nbsp;grades
+        <input type="radio" name="assessmentOutput" :value="'scatter'" v-model="graphSelection"/>&nbsp;scatter
+        <input type="radio" name="assessmentOutput" :value="'box'" v-model="graphSelection"/>&nbsp;box
+        <input type="radio" name="assessmentOutput" :value="'confidence'" v-model="graphSelection"/>&nbsp;95% CI
+        </td>
+        <td>
+        <input type="radio" name="assessmentOutputData" :value="'grade'" v-model="dataSelection"/>&nbsp;grade
+        <input type="radio" name="assessmentOutputData" :value="'rawres'" v-model="dataSelection"/>&nbsp;raw res
+        <input type="radio" name="assessmentOutputData" :value="'stdres'" v-model="dataSelection"/>&nbsp;std res
+        </td>
+        
+      </tr>
+    </table>
+    <p>&nbsp;</p>
+    </div> <!-- end of status===4 or status===5 options div -->
+  <div v-if="status===4">
+    <table>
+    <tr>
+      <td>course</td><td>subject</td><td>(code)</td><td>set</td><td>(mean)</td><td>{{assess[selectedCol].AcademicYearCode}}&nbsp;&nbsp;(form {{assess[selectedCol].Form}})&nbsp;&nbsp;{{assess[selectedCol].Type}}&nbsp;&nbsp;{{assess[selectedCol].Title}}</td>     
+      </tr>
+    <template v-for="(item,index) in baseTable"> <!-- main results loop for assessment status==4 -->
+      <tr v-if="baseTable[index][selectedCol].showGradeLabel===true">
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>
+        <template v-if="dataSelection==='grade' && graphSelection!=='table' && item[selectedCol].grade.label">
+            <svg :width="svgw" :height="svgh">
+              <line :x1="svgox" :x2="svgox+item[selectedCol].grade.label.data[0].UniScore*svgscale" :y1="9*svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />
+              <template v-for="point in item[selectedCol].grade.label.data">
+                <text v-if="point.isView" :x="(svgox+point.UniScore*svgscale)" :y="svgoy" :font-size="svgoy">{{point.Grade}}</text>
+                <line :x1="(svgox+point.UniScore*svgscale)" :x2="(svgox+point.UniScore*svgscale)" :y1="svgoy+svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />  
+              </template>
+              <svg>
+        </template>
+        <template v-if="dataSelection!=='grade' && graphSelection!=='table' && item[selectedCol].grade.label">
+            <svg :width="svgw" :height="svgh">
+              <line :x1="svgox" :x2="svgox+20*svgscale/2" :y1="9*svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />
+              <template v-for="point in resPoints">
+                <text :x="(svgw/2+point.v*svgscale/2)" :y="svgoy" :font-size="svgoy">{{point.t}}</text>
+                <line :x1="(svgw/2+point.v*svgscale/2)" :x2="(svgw/2+point.v*svgscale/2)" :y1="svgoy+svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />  
+              </template>
+              <svg>
+        </template>
+        </td>
+      </tr> <!-- end grade label row -->
+      <tr> <!-- start of results row -->
+        <td>{{set[index].CourseCode}}</td><td>{{set[index].SubjectCode}}</td><td>{{set[index].ResultCode}}</td>
+        <td>{{set[index].SetInfo}}</td>
+        <td v-bind:class="{'redRAG':item[selectedCol].tRes.sig===-1,'greenRAG':item[selectedCol].tRes.sig===1}">{{item[selectedCol].grade.repGrade}}</td>
+        
+        <td>  <!-- graph/table here -->
+          <template v-if="graphSelection=='table' && dataSelection=='grade' && item[selectedCol].grade.totals.isValid">
+          <table>
+            <tr><td v-for="grade in item[selectedCol].grade.totals.data">{{grade.Grade}}</td></tr>
+            <tr><td v-for="grade in item[selectedCol].grade.totals.data">{{grade.total}}</td></tr>
+            
+          </table>
+          </template>
+          <template v-if="graphSelection=='scatter' && dataSelection=='grade'">
+            <svg :width="svgw" :height="svgh">
+              <template v-for="point in item[selectedCol].grade.uniScore">
+                <circle :cx="(svgox+point*svgscale)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(0,0,0,0.2)" />
+              </template>
+              <svg>
+          </template> 
+          <template v-if="graphSelection=='scatter' && dataSelection=='rawres'">
+            <svg :width="svgw" :height="svgh">
+              <template v-for="point in item[selectedCol].grade.rawRes">
+                <circle v-if="point>0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(144,238,144,1.0)" />
+                <circle v-if="point<0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(240,128,128,1.0)" />
+                <circle v-if="point===0" :cx="(svgw/2+point*svgscale/2)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(0,0,0,0.2)" />
+              </template>
+              </svg>
+          </template>
+          <template v-if="graphSelection=='scatter' && dataSelection=='stdres'">
+            <svg :width="svgw" :height="svgh">
+              <template v-for="point in item[selectedCol].grade.stdRes">
+                <circle v-if="point>0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(144,238,144,1.0)" />
+                <circle v-if="point<0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(240,128,128,1.0)" />
+                <circle v-if="point===0" :cx="(svgw/2+point*svgscale/2)" :cy="svgoy" r="5" stroke="black" stroke-width="0" fill="rgba(0,0,0,0.2)" />
+              </template>
+              </svg>
+          </template>
+          <template v-if="graphSelection=='box' && dataSelection=='grade'">
+            <svg :width="svgw" :height="svgh">
+              <template v-if="item[selectedCol].box.isValid===true">
+                <line :x1="svgox+item[selectedCol].box.min*svgscale" :x2="svgox+item[selectedCol].box.min*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].box.max*svgscale" :x2="svgox+item[selectedCol].box.max*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].box.q1*svgscale" :x2="svgox+item[selectedCol].box.q1*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].box.q2*svgscale" :x2="svgox+item[selectedCol].box.q2*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="lightCoral" stroke-width="3"/>
+                <line :x1="svgox+item[selectedCol].box.q3*svgscale" :x2="svgox+item[selectedCol].box.q3*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].box.min*svgscale" :x2="svgox+item[selectedCol].box.q1*svgscale" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].box.q3*svgscale" :x2="svgox+item[selectedCol].box.max*svgscale" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].box.q1*svgscale" :x2="svgox+item[selectedCol].box.q3*svgscale" :y1="svgh/10" :y2="svgh/10" stroke="black" stroke-width="1" />
+                             <line :x1="svgox+item[selectedCol].box.q1*svgscale" :x2="svgox+item[selectedCol].box.q3*svgscale" :y1="9*svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1" />
+                </template>
+              </svg>
+          </template> 
+          <template v-if="graphSelection=='box' && dataSelection=='rawres'">
+            <svg :width="svgw" :height="svgh">
+              <template v-if="item[selectedCol].boxRes.isValid===true">
+                <line :x1="svgw/2+item[selectedCol].boxRes.min*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.min*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.max*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.max*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.q1*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.q1*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.q2*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.q2*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="lightCoral" stroke-width="3"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.q3*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.q3*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.min*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.q1*svgscale/2" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.q3*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.max*svgscale/2" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item[selectedCol].boxRes.q1*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.q3*svgscale/2" :y1="svgh/10" :y2="svgh/10" stroke="black" stroke-width="1" />
+                <line :x1="svgw/2+item[selectedCol].boxRes.q1*svgscale/2" :x2="svgw/2+item[selectedCol].boxRes.q3*svgscale/2" :y1="9*svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1" />
+                </template>
+              </svg>
+          </template> 
+          <template v-if="graphSelection=='confidence' && dataSelection=='grade'">
+            <svg :width="svgw" :height="svgh">
+              <template v-if="item[selectedCol].t.isValid===true">
+                <line :x1="svgox+item[selectedCol].t.confDown*svgscale" :x2="svgox+item[selectedCol].t.confDown*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].t.confUp*svgscale" :x2="svgox+item[selectedCol].t.confUp*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item[selectedCol].t.mean*svgscale" :x2="svgox+item[selectedCol].t.mean*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="lightCoral" stroke-width="3"/>
+                <line :x1="svgox+item[selectedCol].t.confDown*svgscale" :x2="svgox+item[selectedCol].t.confUp*svgscale" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                </template>
+              </svg>
+          </template> 
+
+        </td>
+      </tr> <!-- end of results row -->
+    </template> <!-- end of main results loop for assessment status==4 -->
+    <tr>   
+    </table>
+  </div> <!-- end of status==4 div-->
+        
+  <div v-if="status===5">
+    <table>
+    <tr>
+      <td colspan=2>Assessment</td><td>(mean)</td>
+      <td>set&nbsp;{{set[selectedRow].SetInfo}}&nbsp;&nbsp;&nbsp;&nbsp;{{set[selectedRow].AcademicYearCode}}&nbsp;&nbsp;course&nbsp;{{set[selectedRow].CourseCode}}&nbsp;&nbsp;subject&nbsp;{{set[selectedRow].SubjectCode}}</td>     
+      </tr>
+      <tr v-if="graphSelection!=='table'"> 
+        <!--show grade/res label in 1st row only ---> 
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>
+        <template v-if="dataSelection==='grade' && graphSelection!=='table' && baseTable[selectedRow][0].grade.label">
+            <svg :width="svgw" :height="svgh">
+              <line :x1="svgox" :x2="svgox+baseTable[selectedRow][0].grade.label.data[0].UniScore*svgscale" :y1="9*svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />
+              <template v-for="point in baseTable[selectedRow][0].grade.label.data">
+                <text v-if="point.isView" :x="(svgox+point.UniScore*svgscale)" :y="svgoy" :font-size="svgoy">{{point.Grade}}</text>
+                <line :x1="(svgox+point.UniScore*svgscale)" :x2="(svgox+point.UniScore*svgscale)" :y1="svgoy+svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />  
+              </template>
+              <svg>
+        </template>
+        <template v-if="dataSelection!=='grade' && graphSelection!=='table' && baseTable[selectedRow][0].grade.label">
+            <svg :width="svgw" :height="svgh">
+              <line :x1="svgox" :x2="svgox+20*svgscale/2" :y1="9*svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />
+              <template v-for="point in resPoints">
+                <text :x="(svgw/2+point.v*svgscale/2)" :y="svgoy" :font-size="svgoy">{{point.t}}</text>
+                <line :x1="(svgw/2+point.v*svgscale/2)" :x2="(svgw/2+point.v*svgscale/2)" :y1="svgoy+svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1" />  
+              </template>
+              <svg>
+        </template>
+        </td>
+      </tr> 
+      <tr v-for="(item,index) in baseTable[selectedRow]">
+        <td>{{assess[index].Type}}</td><td>{{assess[index].Title}}</td>
+        <td v-bind:class="{'redRAG':item.tRes.sig===-1,'greenRAG':item.tRes.sig===1}">{{item.grade.repGrade}}</td>
+        
+        <td>
+        <template v-if="graphSelection=='table' && dataSelection=='grade' && item.grade.totals.isValid">
+          <table>
+            <tr><td v-for="grade in item.grade.totals.data">{{grade.Grade}}</td></tr>
+            <tr><td v-for="grade in item.grade.totals.data">{{grade.total}}</td></tr>
+            
+          </table>
+        </template>
+        <template v-if="graphSelection=='scatter' && dataSelection=='grade'">
+            <svg :width="svgw" :height="svgh">
+              <template v-for="point in item.grade.uniScore">
+                <circle :cx="(svgox+point*svgscale)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(0,0,0,0.2)" />
+              </template>
+              <svg>
+        </template>
+        <template v-if="graphSelection=='scatter' && dataSelection=='rawres'">
+            <svg :width="svgw" :height="svgh">
+              <template v-for="point in item.grade.rawRes">
+                <circle v-if="point>0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(144,238,144,1.0)" />
+                <circle v-if="point<0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(240,128,128,1.0)" />
+                <circle v-if="point===0" :cx="(svgw/2+point*svgscale/2)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(0,0,0,0.2)" />
+              </template>
+              </svg>
+        </template>
+        <template v-if="graphSelection=='scatter' && dataSelection=='stdres'">
+            <svg :width="svgw" :height="svgh">
+              <template v-for="point in item.grade.stdRes">
+                <circle v-if="point>0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(144,238,144,1.0)" />
+                <circle v-if="point<0":cx="(svgw/2+point*svgscale/2)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(240,128,128,1.0)" />
+                <circle v-if="point===0" :cx="(svgw/2+point*svgscale/2)" :cy="svgoy" :r="svgr" stroke="black" stroke-width="0" fill="rgba(0,0,0,0.2)" />
+              </template>
+              </svg>
+          </template>
+        <template v-if="graphSelection=='box' && dataSelection=='grade'">
+            <svg :width="svgw" :height="svgh">
+              <template v-if="item.box.isValid===true">
+                <line :x1="svgox+item.box.min*svgscale" :x2="svgox+item.box.min*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.box.max*svgscale" :x2="svgox+item.box.max*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.box.q1*svgscale" :x2="svgox+item.box.q1*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.box.q2*svgscale" :x2="svgox+item.box.q2*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="lightCoral" stroke-width="3"/>
+                <line :x1="svgox+item.box.q3*svgscale" :x2="svgox+item.box.q3*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.box.min*svgscale" :x2="svgox+item.box.q1*svgscale" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.box.q3*svgscale" :x2="svgox+item.box.max*svgscale" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.box.q1*svgscale" :x2="svgox+item.box.q3*svgscale" :y1="svgh/10" :y2="svgh/10" stroke="black" stroke-width="1" />
+                <line :x1="svgox+item.box.q1*svgscale" :x2="svgox+item.box.q3*svgscale" :y1="9*svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1" />
+                </template>
+              </svg>
+        </template>
+        <template v-if="graphSelection=='box' && dataSelection=='rawres'">
+            <svg :width="svgw" :height="svgh">
+              <template v-if="item.boxRes.isValid===true">
+                <line :x1="svgw/2+item.boxRes.min*svgscale/2" :x2="svgw/2+item.boxRes.min*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item.boxRes.max*svgscale/2" :x2="svgw/2+item.boxRes.max*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item.boxRes.q1*svgscale/2" :x2="svgw/2+item.boxRes.q1*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item.boxRes.q2*svgscale/2" :x2="svgw/2+item.boxRes.q2*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="lightCoral" stroke-width="3"/>
+                <line :x1="svgw/2+item.boxRes.q3*svgscale/2" :x2="svgw/2+item.boxRes.q3*svgscale/2" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item.boxRes.min*svgscale/2" :x2="svgw/2+item.boxRes.q1*svgscale/2" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item.boxRes.q3*svgscale/2" :x2="svgw/2+item.boxRes.max*svgscale/2" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                <line :x1="svgw/2+item.boxRes.q1*svgscale/2" :x2="svgw/2+item.boxRes.q3*svgscale/2" :y1="svgh/10" :y2="svgh/10" stroke="black" stroke-width="1" />
+                <line :x1="svgw/2+item.boxRes.q1*svgscale/2" :x2="svgw/2+item.boxRes.q3*svgscale/2" :y1="9*svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1" />
+                </template>
+              </svg>
+            </template>
+        <template v-if="graphSelection=='confidence' && dataSelection=='grade'">
+            <svg :width="svgw" :height="svgh">
+              <template v-if="item.t.isValid===true">
+                <line :x1="svgox+item.t.confDown*svgscale" :x2="svgox+item.t.confDown*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.t.confUp*svgscale" :x2="svgox+item.t.confUp*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="black" stroke-width="1"/>
+                <line :x1="svgox+item.t.mean*svgscale" :x2="svgox+item.t.mean*svgscale" :y1="svgh/10" :y2="9*svgh/10" stroke="lightCoral" stroke-width="3"/>
+                <line :x1="svgox+item.t.confDown*svgscale" :x2="svgox+item.t.confUp*svgscale" :y1="svgh/2" :y2="svgh/2" stroke="black" stroke-width="1"/>
+                </template>
+              </svg>
+          </template>   
+        </td>
+        </tr> 
+    </table>   
+    
+    
+    
+  </div> <!-- end of status===5 div -->
+            
+  <div v-if="status===6"> <!-- start of status===6 -->
+  
+  <table><tr>
+  <td><input type="radio" name="pupilOutput" :value="'grade'" v-model="pupilSelection"/>&nbsp;grade</td>
+  <td><input type="radio" name="pupilOutput" :value="'graph'" v-model="pupilSelection"/>&nbsp;graph</td>
+  </tr></table>       
+  <p>&nbsp;</p> 
+  
+  <template v-if="pupilSelection==='grade'">
+  <table>
+  <tr>
+    <td>(id)</td><td>surname</td><td>forename</td><td>set</td>
+    
+    <template v-for="(item,index) in pupilTable">
+      <template v-if="item.index===selectedPupilTableIndex">
+        <td v-for="ass in pupilTable[index].assess">{{ass.Type}}&nbsp;{{ass.AcademicYearCode}}</td>    
+      </template>
+    </template>
+    </tr>
+    <tr>
+    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+    <template v-for="(item,index) in pupilTable">
+      <template v-if="item.index===selectedPupilTableIndex">
+        <td v-for="ass in pupilTable[index].assess">{{ass.Title}}</td>    
+      </template>
+    </template>
+  </tr>
+  <template v-for="(item,index) in pupilTable">
+      <template v-if="item.index===selectedPupilTableIndex">
+        <tr v-for="(pupil,pupilIndex) in pupilTable[index].pupilInfo">
+          <td>{{pupil.PupilNumber}}</td><td>{{pupil.Surname}}</td><td>{{pupil.Forename}}</td><td>{{pupil.SetInfo}}</td>
+          <template v-for="data in pupilTable[index].data[pupilIndex]"><td v-bind:class="{'redRAG':data.RawRes<0,'greenRAG':data.RawRes>0}">{{data.Grade}}</td></template>
+        </tr>
+      </template>
+  </template>
+ 
+  
+  </table>
+  </template>
+  
+  <template v-if="pupilSelection==='graph'">
+  <table>
+  <tr>
+    <td>(id)</td><td>surname</td><td>forename</td><td>set</td>
+    <td>
+        <svg :width="svgw" :height="svgh">
+          <template v-for="(item,index) in pupilTable">
+          <template v-if="item.index===selectedPupilTableIndex">
+            <template v-for="(ass,assIndex) in pupilTable[index].assess">
+              <text :x="svgox+(assIndex*(svgw-2*svgox)/pupilTable[index].assess.length)" :y="svgoy" :font-size="svgoy">{{ass.Title}}</text>
+            <line :x1="svgox+(assIndex*(svgw-2*svgox)/pupilTable[index].assess.length)" :x2="svgox+(assIndex*(svgw-2*svgox)/pupilTable[index].assess.length)" :y1="svgoy+svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1"/>
+            </template>
+            <line :x1="svgox":x2="svgox+((pupilTable[index].assess.length-1)*(svgw-2*svgox)/pupilTable[index].assess.length)" :y1="9*svgh/10" :y2="9*svgh/10" style="stroke:rgb(0,0,0);stroke-width:1"/>
+            </template>
+          </template>
+              
+        <svg>
+    </td>
+  </tr>
+  <template v-for="(item,index) in pupilTable">
+      <template v-if="item.index===selectedPupilTableIndex">
+        <tr v-for="(pupil,pupilIndex) in pupilTable[index].pupilInfo">
+          <td>{{pupil.PupilNumber}}</td><td>{{pupil.Surname}}</td><td>{{pupil.Forename}}</td><td>{{pupil.SetInfo}}</td>
+          <!--<template v-for="data in pupilTable[index].data[pupilIndex]"><td v-bind:class="{'redRAG':data.RawRes<0,'greenRAG':data.RawRes>0}">{{data.Grade}}</td></template> -->
+          <td>
+          <svg :width="svgw" :height="svgh*2">
+           <template v-for="(data,dataIndex) in pupilTable[index].data[pupilIndex]">
+           
+            <template v-if="dataIndex<(pupilTable[index].assess.length-1)">
+            <template v-if="data.Grade && pupilTable[index].data[pupilIndex][dataIndex+1].Grade"> 
+            <template v-if="data.Grade!='X' && data.Grade!=null && pupilTable[index].data[pupilIndex][dataIndex+1].Grade!='X' && pupilTable[index].data[pupilIndex][dataIndex+1].Grade!=null">
+            <line :x1="svgox+dataIndex*(svgw-2*svgox)/pupilTable[index].assess.length" :x2="svgox+(dataIndex+1)*(svgw-2*svgox)/pupilTable[index].assess.length" :y1="(1.5*svgh)-(0.1*data.UniScore*svgh)" :y2="(1.5*svgh)-(0.1*pupilTable[index].data[pupilIndex][dataIndex+1].UniScore*svgh)" style="stroke:rgb(0,0,0);stroke-width:1"/> 
+             </template>
+             </template>
+             </template>
+             
+               <text v-if="data.UniScore>=3 && data.Grade!=='X'" :font-size="svgoy" :x="svgox+dataIndex*(svgw-2*svgox)/pupilTable[index].assess.length" :y="3*svgr+(1.5*svgh)-(0.1*data.UniScore*svgh)">{{data.Grade}}</text>
+             <text v-if="data.UniScore<3 && data.Grade!=='X'" :font-size="svgoy" :x="svgox+dataIndex*(svgw-2*svgox)/pupilTable[index].assess.length" :y="-2*svgr+(1.5*svgh)-(0.1*data.UniScore*svgh)">{{data.Grade}}</text>
+           <circle v-if="data.RawRes<0" :cx="svgox+dataIndex*(svgw-2*svgox)/pupilTable[index].assess.length" :cy="(1.5*svgh)-(0.1*data.UniScore*svgh)" :r="svgr" stroke="black" stroke-width="0" fill="lightcoral"/>
+           <circle v-if="data.RawRes===0" :cx="svgox+dataIndex*(svgw-2*svgox)/pupilTable[index].assess.length" :cy="(1.5*svgh)-(0.1*data.UniScore*svgh)" :r="svgr" stroke="black" stroke-width="0" fill="rgb(128,128,128)"/>
+           <circle v-if="data.RawRes>0" :cx="svgox+dataIndex*(svgw-2*svgox)/pupilTable[index].assess.length" :cy="(1.5*svgh)-(0.1*data.UniScore*svgh)" :r="svgr" stroke="black" stroke-width="0" fill="lightgreen"/>
+             
+            </template>
+          </svg>
+          </td>
+        </tr>
+      </template>
+  </template>
+ 
+  
+  </table>
+  </template>
+    
+    
+    
+  </div> <!-- end of status===6 -->
+    
+    
+</div> <!-- end of dept main div --> 
+</template> <!-- end of dept template -->
+
+<template id="overview-template"> <!-- start of department template --> 
+<div> <!-- start of dept main div -->
+  <p>{{message}}</p>
+</div> <!-- end of dept main div --> 
+</template> <!-- end of dept template -->
+
+  
+  
+  
+  
+  
+  
+<div id="app" class="container"> <!-- start of app -->
+  
+    <div class="title">TEST</div>
+    <div class="main-menu">
+            
+            <a href="#" v-bind:class="{selected:menuActive=='HOME'}" v-on:click="menuSelection('HOME')"><span style="font-size:large"><!--&#8962;-->&#127968;</a></span>&nbsp;
+        <a href="#" v-bind:class="{selected:menuActive=='DEPARTMENT'}" v-on:click="menuSelection('DEPARTMENT')">DEPARTMENT</a>&nbsp;
+        <a href="#"  v-bind:class="{selected:menuActive=='OVERVIEW'}" v-on:click="menuSelection('OVERVIEW')">OVERVIEW</a>
+    </div>
+    <div class="content">
+            <div v-if="menuActive=='HOME'">
+                    <p>Instructions...</p>
+            </div>
+        <div v-if="menuActive=='OVERVIEW'">
+                <overview></overview>
+        </div>
+            <div v-if="menuActive=='DEPARTMENT'">
+                <department></department>
+            </div>
+    <div>
+
+      
+      
+      
+</div>
+<!-- end of app -->
+
+  
+  
+</body>
+</html>
