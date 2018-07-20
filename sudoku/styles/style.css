@@ -1,0 +1,171 @@
+/* disable text selection */
+/* https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting */
+* {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: -moz-none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
+  /*font-variant: small-caps;*/
+}
+
+/* colors
+https://www.w3schools.com/Colors/colors_monochromatic.asp
+
+light to dark
+#DEE9FC light blue
+#BBC7DD grey blue
+#1258DC mid blue
+#0A337F dark blue
+#091834 black blue
+
+
+*/
+
+/* main components */
+
+.wrapper {
+  width: 100vw;
+  height: 100vh;
+  background-color: white;
+}
+
+.container {
+  position: relative;
+  background-color: white;
+}
+
+/* end of main components */
+
+/* start of UX styles*/
+
+.inactive {
+  position: absolute;
+  opacity: 0.9;
+  text-align: center;
+  vertical-align: middle;
+  color: #0a337f;
+  z-index: 20;
+}
+
+.active {
+  position: absolute;
+  opacity: 0.9;
+  text-align: center;
+  vertical-align: middle;
+  color: #0a337f;
+  z-index: 20;
+}
+
+.active:hover,
+.active:active {
+  color: #bbc7dd;
+}
+
+.status {
+  position: absolute;
+  opacity: 0.9;
+  vertical-align: middle;
+  color: #091834;
+}
+
+.green {
+  color: forestgreen;
+}
+
+.red {
+  color: firebrick;
+}
+
+.shaded {
+  color: #dee9fc;
+  background-color: #0a337f;
+}
+
+.shaded-button:hover,
+.shaded-button:active {
+  background-color: #091834;
+}
+
+.selected {
+  /*border: 1px solid #0a337f;*/
+  background-color: #dee9fc;
+  color: #0a337f;
+  z-index: 200;
+}
+
+.selected-hint {
+  /*border: 1px solid #0a337f;*/
+  background-color: #dee9fc;
+  color: red;
+  font-weight: bold;
+  z-index: 200;
+}
+
+/* end of UX styles*/
+
+/* start of cell styles */
+.cell {
+  position: absolute;
+  opacity: 0.9;
+  color: #091834;
+  text-align: center;
+  vertical-align: middle;
+  z-index: 20;
+  font-weight: bold;
+}
+
+.cell-fixed {
+  color: #0a337f;
+  font-weight: normal;
+}
+
+.cell-invalid {
+  color: red;
+  font-weight: bold;
+}
+
+.cell-pencil {
+  position: absolute;
+  color: #091834;
+  text-align: center;
+  vertical-align: middle;
+  z-index: 10;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  font-weight: bold;
+}
+
+.selected-cell {
+  /*background-color: lightslategray;*/
+  background-color: #dee9fc;
+}
+
+.selected-neighbour {
+  /*background-color: lightsteelblue;*/
+  background-color: #bbc7dd;
+}
+
+.cell-border {
+  position: absolute;
+  background-color: #bbc7dd;
+  border: 0px solid #bbc7dd;
+  z-index: 80;
+}
+
+.block-border {
+  position: absolute;
+  background-color: #091834;
+  border: 1px solid #091834;
+  z-index: 100;
+}
+
+/* end of cell styles */
