@@ -161,12 +161,7 @@ class Main {
   }
 }
 
-// testing ...
-window.onload = () => {
-  main = new Main();
-  main.buildPuzzle();
 
-};
 
 window.onresize = () => {
   main.buildBoard();
