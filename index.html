@@ -5,37 +5,56 @@
 <meta name="viewport" content="width=device-width, user-scalable=no" />
 
 <style>
+  html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-variant: small-caps;
+  height: 100%;
+  background-color: rgba(227, 227, 227, 0.5);
+}
 
-/*https://stackoverflow.com/questions/4288253/html5-canvas-100-width-height-of-viewport */
+/* https://stackoverflow.com/questions/3186123/100-css-layout-with-header-and-footer */
+.header {
+  position: absolute;
+  border-bottom: 1px solid black;
+  height: 4em;
+  left: 0;
+  top: 0;
+  right: 0;
+}
 
-/* * { margin:0; padding:0; } */ /* to remove the top and left whitespace */
+.footer {
+  position: absolute;
+  border-top: 1px solid black;
+  height: 4em;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
 
-html, body { width:100%; height:100%; font-family:sans-serif;} /* just to be sure these are full screen*/
-
-canvas { border:1px solid black;display:block; } /* To remove the scrollbars */
+.content {
+  position: absolute;
+  top: 4.5em;
+  left: 0px;
+  right: 0px;
+  bottom: 4.5em;
+}
 
 </style>
-<script src="physicsjs-full.min.js"></script>
-<script src="main.js"></script>
-
-<script>
-
-
-var main;
-window.onload=function() {
-main();
-};
-
-
-
-</script>
-
-</head>
 <body>
-
-<div id="header">header</div>    
-<div id="main"><canvas border=1 id="canvas" width=600 height=400;></canvas></div>
-<div id="footer">footer</div>
-
+		<div class="header">Ilex Coding</div>
+		<div class="content">
+      <p><a href="sudoku/index.html">Simple Sudoku</a></p>
+      <p><a href="equilibrium/index.html">Equilibrium Reaction</a></p>
+      <p><a href="vue1/index.html">Data Analysis</a></p>
+      
+      
+      
+		</div>
+		<div class="footer">agheadley</div>
+</body>
 </body>
 </html>
