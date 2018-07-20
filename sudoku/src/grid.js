@@ -271,4 +271,3 @@ class Grid {
 } // end of Grid class
 
 /* https://foundation.zurb.com/forum/posts/51771-how-to-import-class-using-es6-syntax */
-export default Grid;
