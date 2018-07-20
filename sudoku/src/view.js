@@ -386,4 +386,3 @@ class View {
   }
 } // end of View class
 
-export default View;
