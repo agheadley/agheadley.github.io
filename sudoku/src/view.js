@@ -228,7 +228,7 @@ class View {
       offsetRow,
       offsetCol + this.scale
     );
-    this.title.element.innerHTML = "Sudoku Test";
+    this.title.element.innerHTML = "Simple Sudoku";
     this.menu.element = this.createDiv(["inactive", "shaded"], this.scale, this.scale, offsetRow, offsetCol);
     this.menu.element.innerHTML = "&#9776;";
     this.menu.element.id = "option|menu";
