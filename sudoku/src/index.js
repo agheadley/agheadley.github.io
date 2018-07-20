@@ -162,8 +162,11 @@ class Main {
 }
 
 // testing ...
-main = new Main();
-main.buildPuzzle();
+window.onload = () => {
+  main = new Main();
+  main.buildPuzzle();
+
+};
 
 window.onresize = () => {
   main.buildBoard();
