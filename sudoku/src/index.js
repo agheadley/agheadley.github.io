@@ -1,6 +1,3 @@
-import Grid from "./grid.js";
-import View from "./view.js";
-
 var main;
 
 class Main {
