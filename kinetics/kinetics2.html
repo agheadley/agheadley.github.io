@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+ 
+<style>
+
+body {
+font-family:sans-serif;
+font-size:10pt;
+}
+
+.sliderBox {
+position:relative;
+width:300px;
+height:30px;
+border:0px;
+top:0px;
+left:0px;
+z-index:1;
+overflow:hidden;
+
+}
+
+
+.sliderBar
+{ 
+position:absolute;
+width: 10px; 
+height: 20px; 
+background: gray; 
+border-radius:3px; 
+top:0px;
+left:0px;
+z-index:4;
+}
+
+.sliderBoundary
+{
+position:absolute;
+width:200px;
+height:20px;
+border:0px;
+top:10px;
+left:0px;
+z-index:2;
+overflow:hidden;
+}
+
+.sliderGuide
+{
+position:absolute;
+width:200px;
+height:2px;
+border:1px solid green;
+background:green;
+top:9px;
+left:0px;
+z-index:3;
+}
+
+.sliderGuideFixed
+{
+position:absolute;
+width:200px;
+height:2px;
+border:1px solid red;
+background:red;
+top:9px;
+left:0px;
+z-index:3;
+}
+
+.sliderValue
+{
+position:absolute;
+width:45px;
+border:0px;
+top:10px;
+left:205px;
+height:19px;
+padding-x:2px;
+font-weight:bold;
+background:#e1e1e1;
+text-align:center;
+
+
+}
+
+.sliderUnits 
+{
+position:absolute;
+width:40px;
+border:0px;
+top:5px;
+left:255px;
+height:20px;
+
+}
+
+.reactantsText
+{
+position:relative;
+width:200px;
+height:30px;
+border:0px;
+top:10px;
+left:0px;
+z-index:2;
+overflow:hidden;
+}
+
+.cylinder
+{
+position:absolute;
+top:10px;
+left:50px;
+height:175px;
+width:150px;
+border-left:2px solid #c1c1c1;
+border-right:2px solid #c1c1c1;
+z-index:2;
+}
+
+.cylinderBase
+{
+position:absolute;
+top:185px;
+left:45px;
+height:5px;
+width:160px;
+border:2px solid #c1c1c1;
+z-index:2;
+}
+
+.liquid
+{
+position:absolute;
+top:100px;
+left:52px;
+height:84px;
+width:150px;
+z-index:2;
+background:#f1f1f1;
+-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+	filter: alpha(opacity=20);
+}
+
+
+.liquidMeniscus {
+position:absolute;
+top:90px;
+left:52px;
+height:20px;
+width:150px;
+border-radius:10px;
+border-bottom:1px solid gray;
+z-index:3;
+background:white;
+}
+
+#time
+{
+font-size:2em;
+font-weight:bold;
+
+}
+
+</style>
+ 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+ 
+<script type="text/javascript">
+
+$( init );
+$( showInstructions );
+
+var GLOBAL_TotalVolume,GLOBAL_VolumeKI;
+var GLOBAL_t;
+var GLOBAL_beginBlueCycle=1;
+var GLOBAL_solnOpacity=0;
+var GLOBAL_kFactor=4000;  // keep at 4000 is sensible - higher numbers slower rate!
+var GLOBAL_speedOfColourChange=0.1;
+var GLOBAL_ms=0;
+var GLOBAL_error=1; //+-1% error in results for a value of 1!
+var GLOBAL_errorFactor=(Math.random()/(50/GLOBAL_error))-(GLOBAL_error/100);
+var GLOBAL_stopTime;
+
+function showInstructions()
+{
+alert("Drag green sliders to adjust volumes, start the reaction with START,hit STOP to find the time for a reaction. ");
+}
+ 
+function init() {
+  $('#volKI').draggable( {
+  containment:'#KIBoundary',
+  drag:getKIPosition,
+  stop:changeSolnHeight
+  });
+ 
+  $('#volH2O').draggable( {
+  containment:'#H2OBoundary',
+  drag:getH2OPosition,
+  stop:changeSolnHeight
+  });
+  
+  
+  //now set intial solun height ...
+  changeSolnHeight()
+  colourlessSoln()
+  //blueSoln();
+  
+  //now set fixed positions of some sliders ...
+  tmpX=parseInt($('#H2SO4Value').html());
+  setSliderPosition('volH2SO4',tmpX);
+  tmpX=parseInt($('#Na2S2O3Value').html());
+  setSliderPosition('volNa2S2O3',tmpX);
+  tmpX=parseInt($('#starchValue').html());
+  setSliderPosition('volStarch',tmpX);
+   tmpX=parseInt($('#H2O2Value').html());
+  setSliderPosition('volH2O2',tmpX);
+  //alert(tmpX);
+  //$('#volH2SO4').css('left', '20px')
+ 
+ 
+}
+
+function getKIPosition(event,ui)
+{
+	var offsetXPos = parseInt( ui.position.left );
+	percentageX=Math.round(100*(offsetXPos-8)/190)+4;
+	$('#KIValue').html(percentageX);	
+	//$('#KIValue').html(ui.position.left);	
+}
+
+function getH2OPosition(event,ui)
+{
+	var offsetXPos = parseInt( ui.position.left );
+	percentageX=Math.round(100*(offsetXPos-8)/190)+4;
+	$('#H2OValue').html(percentageX);	
+	//$('#KIValue').html(ui.position.left);	
+}
+
+function setSliderPosition(objectID,percentageX) {
+	tmpX=190*(percentageX/100);
+	
+	$('#'+objectID).css('left', ''+tmpX+'px');
+}
+
+function changeSolnHeight(event, ui)
+{
+resetClock()
+//cyclinder top at 10px, liquid bottom should be at 184px (175px for 350cm3 total) so 10+175 = 185px -1 px at the end.
+//menisus always 10px above top of liquid...
+totalVolume=parseInt($('#KIValue').html())+parseInt($('#H2SO4Value').html())+parseInt($('#Na2S2O3Value').html())+parseInt($('#H2OValue').html())+parseInt($('#starchValue').html())+parseInt($('#H2O2Value').html())	
+newHeight=Math.round(totalVolume/2);
+newTop=184-newHeight;
+newMeniscusTop=174-newHeight;
+$('#solutionMain').css("top",newTop+"px")
+$('#solutionMain').css("height",newHeight+"px")
+$('#solutionMeniscus').css("top",newMeniscusTop+"px")
+GLOBAL_TotalVolume=totalVolume;	
+GLOBAL_VolumeKI=parseInt($('#KIValue').html());	
+GLOBAL_errorFactor=(Math.random()/(50/GLOBAL_error))-(GLOBAL_error/100);
+GLOBAL_stopTime=(GLOBAL_kFactor*GLOBAL_TotalVolume/GLOBAL_VolumeKI)+GLOBAL_errorFactor*(GLOBAL_kFactor*GLOBAL_TotalVolume/GLOBAL_VolumeKI);	
+//alert (GLOBAL_stopTime)	
+}
+
+function blueSoln()
+{
+	if(GLOBAL_beginBlueCycle==1) {
+		$('.liquid').css('background','#2a2aa8');
+		GLOBAL_solnOpacity=1;
+		$("#solutionMain").css('opacity',''+GLOBAL_solnOpacity/10+'');
+		$("#solutionMain").css('filter','alpha(opacity=' + GLOBAL_solnOpacity*10 + ')');
+		GLOBAL_beginBlueCycle=0;
+	}
+	else {
+		if(GLOBAL_solnOpacity<10) {
+			$("#solutionMain").css('opacity',''+GLOBAL_solnOpacity/10+'');
+			$("#solutionMain").css('filter','alpha(opacity=' + GLOBAL_solnOpacity*10 + ')');
+			GLOBAL_solnOpacity+=GLOBAL_speedOfColourChange*GLOBAL_VolumeKI/GLOBAL_TotalVolume;
+			//$('#info').html(GLOBAL_solnOpacity);
+		}
+		
+	}
+
+
+}
+
+function colourlessSoln()
+{
+$('.liquid').css('background','#f1f1f1');
+GLOBAL_solnOpacity=5;
+$("#solutionMain").css('opacity',''+GLOBAL_solnOpacity/10+'');
+$("#solutionMain").css('filter','alpha(opacity=' + GLOBAL_solnOpacity*10 + ')');
+}
+
+
+
+// Simple example of using private variables
+//
+// To start the stopwatch:
+// obj.start();
+//
+// To get the duration in milliseconds without pausing / resuming:
+// var x = obj.time();
+//
+// To pause the stopwatch:
+// var x = obj.stop(); // Result is duration in milliseconds
+//
+// To resume a paused stopwatch
+// var x = obj.start(); // Result is duration in milliseconds
+//
+// To reset a paused stopwatch
+// obj.stop();
+//
+
+//taken from https://gist.github.com/electricg/4372563
+//changed display to show 1/100 s and not ms.
+
+
+
+ 
+var	clsStopwatch = function() {
+// Private vars
+var	startAt	= 0;	// Time of last start / resume. (0 if not running)
+var	lapTime	= 0;	// Time on the clock when last stopped in milliseconds
+ 
+var	now	= function() {
+return (new Date()).getTime();
+};
+// Public methods
+// Start or resume
+this.start = function() {
+startAt	= startAt ? startAt : now();
+};
+ 
+// Stop or pause
+this.stop = function() {
+// If running, update elapsed time otherwise keep it
+lapTime	= startAt ? lapTime + now() - startAt : lapTime;
+startAt	= 0; // Paused
+};
+ 
+// Reset
+this.reset = function() {
+lapTime = startAt = 0;
+};
+ 
+// Duration
+this.time = function() {
+return lapTime + (startAt ? now() - startAt : 0);
+};
+};
+ 
+var x = new clsStopwatch();
+var $time;
+var clocktimer;
+ 
+function pad(num, size) {
+var s = "0000" + num;
+return s.substr(s.length - size);
+}
+ 
+function formatTime(time) {
+var h = m = s = ms = 0;
+var newTime = '';
+ 
+h = Math.floor( time / (60 * 60 * 1000) );
+time = time % (60 * 60 * 1000);
+m = Math.floor( time / (60 * 1000) );
+time = time % (60 * 1000);
+s = Math.floor( time / 1000 );
+hs = Math.floor( time / 10 );
+ms = time % 1000;
+
+ 
+newTime = pad(h, 2) + ':' + pad(m, 2) + ':' + pad(s, 2) + ':' + pad(hs, 2);
+
+
+
+return newTime;
+}
+ 
+function show() {
+update();
+}
+ 
+function update() {
+$('#time').html(formatTime(x.time()));
+GLOBAL_ms=x.time()
+timeElapsed=new Date().getTime()-GLOBAL_t;
+//if( GLOBAL_beginBlueCycle==1) $('#info').html(GLOBAL_ms);
+//$('#info').html((Math.random()/(50/GLOBAL_error))-(GLOBAL_error/100));
+
+
+
+
+if( GLOBAL_beginBlueCycle==1) $('#info').html(GLOBAL_ms);
+
+//now decide when colour is to be changed...
+
+if(GLOBAL_ms>GLOBAL_stopTime) 
+    {
+       
+		blueSoln();
+      
+    }
+}
+ 
+function startClock() {
+clocktimer = setInterval("update()", 1);
+x.start();
+GLOBAL_t=new Date().getTime();
+//$('#info').html(GLOBAL_t);
+}
+ 
+function stopClock() {
+x.stop();
+clearInterval(clocktimer);
+
+}
+ 
+function resetClock() {
+x.stop();
+x.reset();
+update();
+colourlessSoln();
+GLOBAL_stopTag=0;
+GLOBAL_solnOpacity=5;
+GLOABL_ms=0;
+GLOBAL_beginBlueCycle=1;
+GLOBAL_errorFactor=(Math.random()/(50/GLOBAL_error))-(GLOBAL_error/100);
+GLOBAL_stopTime=(GLOBAL_kFactor*GLOBAL_TotalVolume/GLOBAL_VolumeKI)+GLOBAL_errorFactor*(GLOBAL_kFactor*GLOBAL_TotalVolume/GLOBAL_VolumeKI);	
+//$('#info').html(GLOBAL_ms)
+
+
+
+
+}  
+
+
+
+
+</script>
+ 
+</head>
+<body>
+<div id="container" style="width:500px;">
+
+<div id="header" style="clear:both;">
+<h2>Investigating the kinetics of the reaction between Hydrogen Peroxide and Iodide Ions</h2>
+<p>H<sub>2</sub>O<sub>2</sub> (aq) + 2H<sup>+</sup> (aq) + 2I<sup>-</sup> (aq) &rarr; I<sub>2</sub> (aq) + 2H<sub>2</sub>O (l)</p>
+<p>2S<sub>2</sub>O<sub>3</sub><sup>2-</sup> (aq) + I<sub>2</sub> (aq) &rarr; 2I<sup>-</sup> (aq) +  S<sub>4</sub>O<sub>6</sub><sup>2-</sup> (aq)</p>
+  
+</div>
+
+ 
+  
+  
+<div id="reactants" style="position:relative;float:left;width:200px;">
+<div class="reactantsText"><b>KI</b> ( 0.1moldm<sup>-3</sup> ) </div>
+<div class="reactantsText"><b>H<sub>2</sub>SO<sub>4</sub></b> ( 0.25moldm<sup>-3</sup> )</div>
+<div class="reactantsText"><b>Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub></b> ( 0.05moldm<sup>-3</sup> ) </div>
+<div class="reactantsText"><b>H<sub>2</sub>O</b></div>
+<div class="reactantsText"><b>Starch</b> ( 2% )</div>
+<div class="reactantsText"><b>H<sub>2</sub>O<sub>2</sub></b> ( 0.1moldm<sup>-3</sup> )</div>
+</div>
+
+<div id="sliders" style="position:relative;float:right;width:300px;">
+
+<div class="sliderBox">
+  <div class="sliderBoundary" id="KIBoundary">
+  <div class="sliderBar" id="volKI"></div>
+  <div class="sliderGuide" id="KIGuide"></div>
+  </div>
+   <div class="sliderValue" id="KIValue">1</div>
+   <div class="sliderUnits" >cm<sup>3</sup></div>
+</div>
+
+
+<div class="sliderBox">
+  <div class="sliderBoundary" id="H2SO4Boundary">
+  <div class="sliderBar" id="volH2SO4"></div>
+  <div class="sliderGuideFixed" id="H2SO4Guide"></div>
+  </div>
+   <div class="sliderValue" id="H2SO4Value">25</div>
+   <div class="sliderUnits" >cm<sup>3</sup></div>
+</div>
+
+<div class="sliderBox">
+  <div class="sliderBoundary" id="Na2S2O3Boundary">
+  <div class="sliderBar" id="volNa2S2O3"></div>
+  <div class="sliderGuideFixed" id="Na2S2O3Guide"></div>
+  </div>
+   <div class="sliderValue" id="Na2S2O3Value">5</div>
+   <div class="sliderUnits" >cm<sup>3</sup></div>
+</div>
+
+<div class="sliderBox">
+  <div class="sliderBoundary" id="H2OBoundary">
+  <div class="sliderBar" id="volH2O"></div>
+  <div class="sliderGuide" id="H2OGuide"></div>
+  </div>
+   <div class="sliderValue" id="H2OValue">0</div>
+   <div class="sliderUnits" >cm<sup>3</sup></div>
+</div>
+
+<div class="sliderBox">
+  <div class="sliderBoundary" id="starchBoundary">
+  <div class="sliderBar" id="volStarch"></div>
+  <div class="sliderGuideFixed" id="starchGuide"></div>
+  </div>
+   <div class="sliderValue" id="starchValue">1</div>
+   <div class="sliderUnits" >cm<sup>3</sup></div>
+</div>
+
+<div class="sliderBox">
+  <div class="sliderBoundary" id="H2O2Boundary">
+  <div class="sliderBar" id="volH2O2"></div>
+  <div class="sliderGuideFixed" id="H2O2Guide"></div>
+  </div>
+   <div class="sliderValue" id="H2O2Value">10</div>
+   <div class="sliderUnits" >cm<sup>3</sup></div>
+</div>
+
+</div>
+
+
+<div id="footer1" style="clear:both;"><p>&nbsp;</p></div>
+
+<div style="position:relative;float:left; width:200px;">
+<p><button style="width:100px;" onclick="startClock()"><span style="color:green;"><b>START</b></span></button></p>
+<p><button style="width:100px;" onclick="stopClock()"><span style="color:red;"><b>STOP</b></button></span></p>
+<p><button style="width:100px;" onclick="resetClock()"><b>RESET</b></button></p>
+<div id="time" style="position:relative;">00:00:00:00</div>
+ <div id="info" style="border:0px solid black;">&nbsp;</div>  
+</div>
+
+<div id="vessel" style="position:relative;float:right;width:300px;">
+<div class="cylinder"></div>
+<div class="cylinderBase"></div>
+<div id="solutionMain" class="liquid"></div>
+<div id="solutionMeniscus" class="liquidMeniscus"></div>
+</div>
+
+
+
+</div>
+
+
+
+ 
+ 
+</div>
+
+
+
+</body>
+</html>
