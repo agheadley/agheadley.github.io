@@ -1,9 +1,9 @@
-var cacheName = 'svelte1';
+var cacheName = 'ilexTT';
 var filesToCache = [
-  '/',
-  '/index.html',
-  '/build/bundle.css',
-  '/build/bundle.js',
+  './',
+  './index.html',
+  './build/bundle.css',
+  './build/bundle.js',
   "https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/css/halfmoon-variables.min.css",
   "https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/js/halfmoon.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/fontawesome.min.css",
