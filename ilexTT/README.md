@@ -6,7 +6,7 @@ add ./ releative urls to index.html, manifest.json  / will not work.
 sw.js needs a full url (not relative)
 https://agheadley.github.io/ilexTT/sw.js
 
-perioddata.csv - format
+perioddata.csv - format - must name weeks and blocks (no block '-')
 day,per,week,id,block
 M,0,A,1,A
 Tu,1,A,2,-
