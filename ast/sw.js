@@ -1,4 +1,4 @@
-var cacheName = 'ast';
+var cacheName = 'AST';
 var filesToCache = [
   './',
   './index.html',
