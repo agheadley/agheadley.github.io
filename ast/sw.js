@@ -1,10 +1,9 @@
 var cacheName = 'ast';
 var filesToCache = [
-  '/',
-  '/index.html',
-  '/global.css',
-  '/build/bundle.css',
-  '/build/bundle.js'
+  './',
+  './index.html',
+  './build/bundle.css',
+  './build/bundle.js'
 ];
 
 /* Start the service worker and cache all of the app's content */
