@@ -1,0 +1,52 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>A Basic HTML5 Template</title>
+  <meta name="description" content="A simple HTML5 Template for new projects.">
+  <meta name="author" content="SitePoint">
+
+</head>
+
+<body>
+  <!-- your content here... -->
+  <!-- Microsoft Teams JavaScript API (via CDN) -->
+<script src="https://statics.teams.cdn.office.net/sdk/v1.10.0/js/MicrosoftTeams.min.js" integrity="sha384-6oUzHUqESdbT3hNPDDZUa/OunUj5SoxuMXNek1Dwe6AmChzqc6EJhjVrJ93DY/Bv" crossorigin="anonymous"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function (event) {
+        microsoftTeams.initialize();
+
+        microsoftTeams.getContext(function (context) {
+
+            microsoftTeams.settings.registerOnSaveHandler(function (saveEvent) {
+
+                microsoftTeams.settings.setSettings({
+                    entityId: "WhatEverUniqueNameYouWantForYourTab",
+                    contentUrl: "https://agheadley.github.io/ast/index.html",
+                    suggestedDisplayName: "WhateverYouWantTheTabToBeCalled",
+
+                });
+
+                saveEvent.notifySuccess();
+            });
+
+            microsoftTeams.settings.setValidityState(true);
+        });
+    });
+
+
+
+
+</script>
+
+
+
+
+
+</body>
+</html>
