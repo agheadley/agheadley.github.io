@@ -9,6 +9,14 @@
   <meta name="description" content="A simple HTML5 Template for new projects.">
   <meta name="author" content="SitePoint">
 
+  <script>
+  let info ="xyz";
+  
+  function showInfo() {
+     document.getElementById('info').innerHTML = info;
+  }
+  </script>
+  
 </head>
 
 <body>
@@ -21,11 +29,7 @@
 <script src="https://statics.teams.cdn.office.net/sdk/v1.10.0/js/MicrosoftTeams.min.js" integrity="sha384-6oUzHUqESdbT3hNPDDZUa/OunUj5SoxuMXNek1Dwe6AmChzqc6EJhjVrJ93DY/Bv" crossorigin="anonymous"></script>
 
 <script>
-  let info ="xyz";
-  
-  function showInfo() {
-     document.getElementById('info').innerHTML = info;
-  }
+
 document.addEventListener("DOMContentLoaded", function (event) {
         microsoftTeams.initialize();
 
