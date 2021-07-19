@@ -13,15 +13,19 @@
 
 <body>
   <!-- your content here... -->
-  <div><p>START</p></div>
+  <div><button onclick="showInfo();">SHOW</button></div>
   <div id="info">
   </div>
-  <div><p>START</p></div>
+  <div><p>END</p></div>
   <!-- Microsoft Teams JavaScript API (via CDN) -->
 <script src="https://statics.teams.cdn.office.net/sdk/v1.10.0/js/MicrosoftTeams.min.js" integrity="sha384-6oUzHUqESdbT3hNPDDZUa/OunUj5SoxuMXNek1Dwe6AmChzqc6EJhjVrJ93DY/Bv" crossorigin="anonymous"></script>
 
 <script>
-
+  let info ="xyz";
+  
+  function showInfo() {
+     document.getElementById('info').innerHTML = info;
+  }
 document.addEventListener("DOMContentLoaded", function (event) {
         microsoftTeams.initialize();
 
@@ -36,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
                 });
               
-               document.getElementById('info').innerHTML = JSON.stringify(context):
+               info=JSON.stringify(context):
 
                 saveEvent.notifySuccess();
             });
