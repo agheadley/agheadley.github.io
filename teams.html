@@ -13,6 +13,10 @@
 
 <body>
   <!-- your content here... -->
+  <div><p>START</p></div>
+  <div id="info">
+  </div>
+  <div><p>START</p></div>
   <!-- Microsoft Teams JavaScript API (via CDN) -->
 <script src="https://statics.teams.cdn.office.net/sdk/v1.10.0/js/MicrosoftTeams.min.js" integrity="sha384-6oUzHUqESdbT3hNPDDZUa/OunUj5SoxuMXNek1Dwe6AmChzqc6EJhjVrJ93DY/Bv" crossorigin="anonymous"></script>
 
@@ -27,10 +31,12 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
                 microsoftTeams.settings.setSettings({
                     entityId: "TestApp",
-                    contentUrl: "https://agheadley.github.io/kinetics/kinetics2.html",
+                    contentUrl: "https://agheadley.github.io/kinetics/teams.html",
                     suggestedDisplayName: "TestApp",
 
                 });
+              
+               document.getElementById('info').innerHTML = JSON.stringify(context):
 
                 saveEvent.notifySuccess();
             });
