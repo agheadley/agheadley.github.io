@@ -1,0 +1,33 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Teams Test</title>
+
+  <script src='https://statics.teams.cdn.office.net/sdk/v1.6.0/js/MicrosoftTeams.min.js'></script>
+</head>
+
+<body>
+
+  <p>Teams Context</p>
+  <p><span id="user"></span></p>
+  <p>End</p>
+<body>
+<script>
+  
+        microsoftTeams.initialize();
+  
+        microsoftTeams.getContext((context) =>{
+        let userId = document.getElementById('user');
+        userId.innerHTML = context.userPrincipalName;
+    });
+</script>
+      
+
+
+</body>
+</html>
+
