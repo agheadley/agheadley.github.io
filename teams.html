@@ -19,18 +19,29 @@
         userId.innerHTML = context.userPrincipalName;
     });
   }
+    
+ let getUser=()=>{
+    microsoftTeams.getContext((context) =>{
+        let userId = document.getElementById('user');
+        console.log(userId);
+    });
+   
+   
+ };
   </script>
   
 </head>
 
 <body>
   <!-- your content here... -->
+  <!--
   <div><button onclick="showInfo()">SHOW</button></div>
   <div id="info">
   </div>
   <div><p>END</p></div>
+  -->
   
-  <p>Teams Context</p>
+  <p>Teams Context Testing</p>
   <p><span id="user"></span></p>
   <p>End</p>
   
@@ -65,6 +76,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
             microsoftTeams.settings.setValidityState(true);
         });
+  
+  
+       getUser();
+  
     });
 
 
