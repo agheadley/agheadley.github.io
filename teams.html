@@ -23,7 +23,8 @@
  let getUser=()=>{
     microsoftTeams.getContext((context) =>{
         let userId = document.getElementById('user');
-        console.log(userId);
+        //console.log(userId);
+        userId.innerHTML = context.userPrincipalName;
     });
    
    
@@ -42,7 +43,7 @@
   -->
   
   <p>Teams Context Testing</p>
-  <p><span id="user"></span></p>
+  <p>USER: <span id="user"></span></p>
   <p>End</p>
   
   <!-- Microsoft Teams JavaScript API (via CDN) -->
