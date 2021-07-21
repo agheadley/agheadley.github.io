@@ -14,6 +14,10 @@
   
   function showInfo() {
      document.getElementById('info').innerHTML = info;
+     microsoftTeams.getContext((context) =>{
+        let userId = document.getElementById('user');
+        userId.innerHTML = context.userPrincipalName;
+    });
   }
   </script>
   
@@ -25,10 +29,20 @@
   <div id="info">
   </div>
   <div><p>END</p></div>
+  
+  <p>Teams Context</p>
+  <p><span id="user"></span></p>
+  <p>End</p>
+  
   <!-- Microsoft Teams JavaScript API (via CDN) -->
 <script src="https://statics.teams.cdn.office.net/sdk/v1.10.0/js/MicrosoftTeams.min.js" integrity="sha384-6oUzHUqESdbT3hNPDDZUa/OunUj5SoxuMXNek1Dwe6AmChzqc6EJhjVrJ93DY/Bv" crossorigin="anonymous"></script>
 
 <script>
+  
+
+  
+     
+ 
 
 document.addEventListener("DOMContentLoaded", function (event) {
         microsoftTeams.initialize();
